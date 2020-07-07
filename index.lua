@@ -28,7 +28,7 @@ local base= {
 		end,
 		alertNotify = function(alert_img,text)
 			local notify = vgui.Create("DNotify")
-			notify:SetPos(185, 15)
+			notify:SetPos(15, 15)
 			notify:SetSize(150, 210)
 			
 			local bg = vgui.Create("DPanel", notify)
@@ -62,10 +62,21 @@ if CLIENT then
 	net.Receive('ach.alert_2',function(len) 
 		base.func.alertNotify(net.ReadString(),net.ReadString())
 	end)
+	net.Receive('ach.sekta',function(len) 
+		sound.PlayURL('https://cdn.discordapp.com/attachments/707018593581137921/729802431797395476/Bazar_-_Sekta2.mp3','3d',function(station)
+			if IsValid(station) then
+				timer.Create('ach.timer1',0,0,function() 
+					station:SetPos(LocalPlayer():GetPos())
+				end)
+				station:Play()
+			end
+		end)
+	end)
 end
 if SERVER then
 	util.AddNetworkString('ach.alert_1')
 	util.AddNetworkString('ach.alert_2')
+	util.AddNetworkString('ach.sekta')
 	hook.Add('PlayerSay','ach.chat',function(ply,text)
 		if string.lower(text) == 'вутка гей' and base.tags['Правда'] == 0 then
 			base.func.alert({
@@ -77,6 +88,18 @@ if SERVER then
 			base.func.alertToPlayer(ply,'gui/colors.png','Вутка гей')
 			return false;
 		end
+		if string.lower(text) == 'аткес' and base.tags['Секта'] == 0 then
+			base.func.alert({
+				Color(255,255,0),'[HexSystem]: ', ply:Nick(),
+				Color(200,200,200), ' Выполнил секретную ачивку -  Секта'
+			});
+			base.tags['Секта'] = 1
+			base.func.JSON(base.tags)
+			base.func.alertToPlayer(ply,'vgui/spawnmenu/npc','Секретная секта')
+			net.Start('ach.sekta')
+			net.Send(ply)
+			return false;
+		end         
 	end)
 	hook.Add('PlayerSpawnProp','ach.prop',function(ply,model)
 		if not IsValid(ply) then return end
@@ -116,7 +139,7 @@ if SERVER then
 	end)
 	hook.Add('PlayerDeath','ach.death',function( victim, inflictor, attacker )
 		if not IsValid(victim) then return end
-		if victim:IsPlayer() and base.tags['Легкий старт'] == 0  then
+		if victim:IsPlayer() and victim != attacker and base.tags['Легкий старт'] == 0  then
 			base.func.alert({
 				Color(255,255,0),'[HexSystem]: ', attacker:Nick(),
 				Color(200,200,200), ' Выполнил ачивку -  Легкий старт'
@@ -128,7 +151,7 @@ if SERVER then
 	end)
 	hook.Add('PlayerUse','ach.use',function(ply,ent)
 		if not IsValid(ply) then return end
-		if ent == 'sent_ball' and base.tags['Далекий 2007'] == 0 then
+		if ent:GetClass() == 'sent_ball' and base.tags['Далекий 2007'] == 0 then
 			base.func.alert({
 				Color(255,255,0),'[HexSystem]: ', ply:Nick(),
 				Color(200,200,200), ' Выполнил ачивку -  Далекий 2007'
@@ -138,4 +161,4 @@ if SERVER then
 			base.func.JSON(base.tags)     
 		end
 	end)               
-end                                                                                                                                            
+end                                                                                                                                                                   
