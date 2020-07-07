@@ -26,6 +26,11 @@ local base= {
 			file.Write( "ach/tags.txt", json)
 			print('Hex: сохранено')
 		end,
+		JSONLocal = function(path,arg)
+			local json = util.TableToJSON(arg)
+			file.Write( path, json)
+			print('Hex: сохранено локально')
+		end,    
 		alertNotify = function(alert_img,text)
 			local notify = vgui.Create("DNotify")
 			notify:SetPos(15, 15)
@@ -52,9 +57,20 @@ local base= {
 			lbl:SetWrap(true)
 			notify:AddItem(bg)
 		end
-	}
+	},
+	tagsValue = 7,
+	tagsWhile = {
+	'Правда',
+	'Мингбаг',
+	'Взлом жопы',
+	'Секта',
+	'Легкий старт',
+	'Далекий 2007',
+	'Убийца?'
+	}                 
 }
 base.func.JSON(base.tags);
+base.func.JSONLocal('ach/ach_local.txt',base.tagsWhile)
 if CLIENT then
 	net.Receive('ach.alert_1',function(len) 
 		chat.AddText(unpack(net.ReadTable()))
@@ -72,6 +88,50 @@ if CLIENT then
 			end
 		end)
 	end)
+	local function menu() // ach menu
+		local fl = file.Read('ach/tags.txt','DATA')
+		local json = util.JSONToTable(fl)
+		local fl2 = file.Read('ach/ach_local.txt','DATA')
+		local jsonLocal = util.JSONToTable(fl2)
+		
+		local Y = 28
+		local i = 0
+		local win = vgui.Create('DFrame')
+		win:SetSize(500,600)
+		win:Center()
+		win:MakePopup()
+		win:SetTitle('')
+		win.Paint = function(self,w,h)
+			draw.RoundedBox(3,0,0,w,h,color_white)
+			draw.RoundedBox(3,2,2,w-4,h-4,color_black)
+		end
+		while i<base.tagsValue do
+			local pnl = vgui.Create('DPanel',win)
+			pnl:SetPos(0,Y)
+			pnl:SetSize(win:GetWide(),40)
+			Y = Y + pnl:GetTall() * 1.2
+			i = i + 1
+			pnl.Paint = function(self,w,h)
+				if pnl:IsHovered() then
+					clrs = math.sin(CurTime()%360*3)*255
+					draw.RoundedBox(3,0,0,w,h,Color(clrs,255,clrs))
+				else
+					draw.RoundedBox(3,0,0,w,h,color_white)
+				end
+			end
+			local lbl = vgui.Create('DLabel',pnl)
+			lbl:SetPos(10,-15)
+			lbl:SetSize(164,64)
+			lbl:SetFont('GModNotify')
+			if json[jsonLocal[i]] == 1 then
+				lbl:SetText(jsonLocal[i]..' ✓')
+			else
+				lbl:SetText(jsonLocal[i]..' ✕')
+			end
+			lbl:SetTextColor(color_black)
+		end
+	end // ach menu
+	concommand.Add('HexMenu',menu)
 end
 if SERVER then
 	util.AddNetworkString('ach.alert_1')
@@ -161,4 +221,4 @@ if SERVER then
 			base.func.JSON(base.tags)     
 		end
 	end)               
-end                                                                                                                                                                   
+end                                                                                                                                                                                                                               
